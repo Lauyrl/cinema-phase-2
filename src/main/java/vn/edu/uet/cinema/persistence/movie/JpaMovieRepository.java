@@ -6,47 +6,64 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.uet.cinema.business.ConflictException;
+import vn.edu.uet.cinema.business.PageResult;
 import vn.edu.uet.cinema.business.movie.Movie;
 import vn.edu.uet.cinema.business.movie.MovieRepository;
 
 @Repository
 class JpaMovieRepository implements MovieRepository {
 
-	private final MovieEntityRepository jpa;
+        private final MovieEntityRepository jpa;
 
-	JpaMovieRepository(MovieEntityRepository jpa) {
-		this.jpa = jpa;
-	}
+        JpaMovieRepository(MovieEntityRepository jpa) {
+                this.jpa = jpa;
+        }
 
-	@Override
-	public List<Movie> findAll() {
-		return jpa.findAll().stream().map(MovieEntity::toMovie).toList();
-	}
+        @Override
+        public List<Movie> findAll() {
+                return jpa.findAll().stream().map(MovieEntity::toMovie).toList();
+        }
 
-	@Override
-	public Optional<Movie> findById(UUID id) {
-		return jpa.findById(id).map(MovieEntity::toMovie);
-	}
+        @Override
+        public PageResult<Movie> findAll(int page, int size) {
+                int zeroBasedPage = Math.max(page, 1) - 1;
+                Pageable pageable = PageRequest.of(
+                        zeroBasedPage,
+                        size,
+                        Sort.by(Sort.Order.desc("releaseDate"), Sort.Order.asc("id")));
+                Page<MovieEntity> result = jpa.findAll(pageable);
+                List<Movie> items = result.getContent().stream().map(MovieEntity::toMovie).toList();
+                return PageResult.of(items, page, size, result.getTotalElements());
+        }
 
-	@Override
-	public Movie save(Movie movie) {
-		return jpa.save(MovieEntity.from(movie)).toMovie();
-	}
+        @Override
+        public Optional<Movie> findById(UUID id) {
+                return jpa.findById(id).map(MovieEntity::toMovie);
+        }
 
-	@Override
-	@Transactional
-	public void deleteById(UUID id) {
-		try {
-			jpa.deleteById(id);
-			jpa.flush();
-		} catch (DataIntegrityViolationException e) {
-			if (hasConstraint(e, "fk_showtime_movie")) {
-				throw new ConflictException("Movie has Showtimes");
-			}
-			throw e;
-		}
-	}
+        @Override
+        public Movie save(Movie movie) {
+                return jpa.save(MovieEntity.from(movie)).toMovie();
+        }
+
+        @Override
+        @Transactional
+        public void deleteById(UUID id) {
+                try {
+                        jpa.deleteById(id);
+                        jpa.flush();
+                } catch (DataIntegrityViolationException e) {
+                        if (hasConstraint(e, "fk_showtime_movie")) {
+                                throw new ConflictException("Movie has Showtimes");
+                        }
+                        throw e;
+                }
+        }
 }
