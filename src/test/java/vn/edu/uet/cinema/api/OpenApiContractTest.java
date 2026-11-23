@@ -1,7 +1,9 @@
 package vn.edu.uet.cinema.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
+import vn.edu.uet.cinema.business.PageResult;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -277,7 +279,7 @@ class OpenApiContractTest {
 
 	@Test
 	void publicCatalogueAllowsAnonymousRequestsButRejectsAnInvalidBearerToken() throws Exception {
-		when(cinemas.list()).thenReturn(List.of());
+		when(cinemas.list(anyInt(), anyInt())).thenReturn(PageResult.of(List.of(), 1, 20, 0));
 		mvc.perform(get("/api/cinemas")).andExpect(status().isOk());
 		mvc.perform(get("/api/cinemas").header("Authorization", "Bearer invalid"))
 			.andExpect(status().isUnauthorized())

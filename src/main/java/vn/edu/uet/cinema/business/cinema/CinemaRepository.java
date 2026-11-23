@@ -3,14 +3,17 @@ package vn.edu.uet.cinema.business.cinema;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import vn.edu.uet.cinema.business.PageResult;
 
 public interface CinemaRepository {
 
-	List<Cinema> findAll();
+        List<Cinema> findAll();
 
-	Optional<Cinema> findById(UUID id);
+        PageResult<Cinema> findAll(int page, int size);
 
-	Cinema save(Cinema cinema);
+        Optional<Cinema> findById(UUID id);
 
-	void deleteById(UUID id);
+        Cinema save(Cinema cinema);
+
+        void deleteById(UUID id);
 }
