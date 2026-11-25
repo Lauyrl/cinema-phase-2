@@ -1,4 +1,4 @@
-﻿package vn.edu.uet.cinema.api.audit;
+package vn.edu.uet.cinema.api.audit;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

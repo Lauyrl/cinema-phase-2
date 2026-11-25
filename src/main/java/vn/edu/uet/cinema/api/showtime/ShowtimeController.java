@@ -1,4 +1,4 @@
-﻿package vn.edu.uet.cinema.api.showtime;
+package vn.edu.uet.cinema.api.showtime;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

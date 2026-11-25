@@ -1,4 +1,4 @@
-﻿package vn.edu.uet.cinema.business.audit;
+package vn.edu.uet.cinema.business.audit;
 
 import vn.edu.uet.cinema.business.PageResult;
 

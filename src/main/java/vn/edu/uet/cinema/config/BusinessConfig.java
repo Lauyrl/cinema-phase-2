@@ -1,4 +1,4 @@
-﻿package vn.edu.uet.cinema.config;
+package vn.edu.uet.cinema.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;

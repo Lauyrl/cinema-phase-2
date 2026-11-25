@@ -30,6 +30,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import vn.edu.uet.cinema.CinemaApplication;
 import vn.edu.uet.cinema.business.account.AccountService;
+import vn.edu.uet.cinema.business.audit.AuditLogService;
 import vn.edu.uet.cinema.business.auditorium.AuditoriumService;
 import vn.edu.uet.cinema.business.booking.BookingService;
 import vn.edu.uet.cinema.business.cinema.CinemaService;
@@ -85,13 +86,16 @@ class OpenApiContractTest {
 		Map.entry("GET /api/bookings", Set.of("401", "403")),
 		Map.entry("GET /api/bookings/{id}", Set.of("400", "401", "403", "404")),
 		Map.entry("POST /api/bookings/{id}/payment", Set.of("400", "401", "403", "404", "409")),
-		Map.entry("DELETE /api/bookings/{id}", Set.of("400", "401", "403", "404", "409")));
+		Map.entry("DELETE /api/bookings/{id}", Set.of("400", "401", "403", "404", "409")),
+                Map.entry("GET /api/admin/audit-logs", Set.of("401", "403")));
 
 	@Autowired
 	MockMvc mvc;
 
 	@MockitoBean
 	AccountService accounts;
+        @MockitoBean
+        AuditLogService auditLogs;
 	@MockitoBean
 	CinemaService cinemas;
 	@MockitoBean
@@ -122,9 +126,9 @@ class OpenApiContractTest {
 		Map<String, Object> validationProblem = map(schemas.get("ValidationProblem"));
 		Map<String, Object> properties = map(validationProblem.get("properties"));
 
-		assertThat(ERROR_MATRIX).hasSize(28);
+		assertThat(ERROR_MATRIX).hasSize(29);
 		assertThat(paths.values().stream().map(OpenApiContractTest::map).mapToInt(path -> (int) path.keySet().stream()
-			.filter(Set.of("get", "post", "put", "delete")::contains).count()).sum()).isEqualTo(28);
+			.filter(Set.of("get", "post", "put", "delete")::contains).count()).sum()).isEqualTo(29);
 		assertThat(api.get("security")).isNull();
 		assertThat(properties).containsKeys("type", "title", "status", "detail", "instance", "errors", "seatIds");
 		assertThat(new HashSet<>((List<?>) validationProblem.get("required")))
@@ -173,15 +177,15 @@ class OpenApiContractTest {
 					}
 				}
 			}
-			boolean shouldRequireBearer = path.equals("/api/me") || path.startsWith("/api/bookings")
+			boolean shouldRequireBearer = path.equals("/api/me") || path.startsWith("/api/bookings") || path.startsWith("/api/admin")
 				|| !method.equals("get") && !path.startsWith("/api/auth/");
 			assertThat(operation.containsKey("security")).as(expected.getKey()).isEqualTo(shouldRequireBearer);
 			if (shouldRequireBearer) {
 				secured++;
 			}
 		}
-		assertThat(secured).isEqualTo(17);
-		assertThat(tags).containsExactlyInAnyOrder("Accounts", "Cinemas", "Auditoriums", "Movies", "Showtimes", "Bookings");
+		assertThat(secured).isEqualTo(18);
+		assertThat(tags).containsExactlyInAnyOrder("Accounts", "Cinemas", "Auditoriums", "Movies", "Showtimes", "Bookings", "Admin Audit Logs");
 		assertSecurityProblemExamples(responses);
 
 		assertRequestExamples(schemas, "RegisterRequest", "email", "password", "fullName");
@@ -349,6 +353,7 @@ class OpenApiContractTest {
 		"org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration"})
 	@ComponentScan(basePackages = {
 		"vn.edu.uet.cinema.api.account",
+                "vn.edu.uet.cinema.api.audit",
 		"vn.edu.uet.cinema.api.auditorium",
 		"vn.edu.uet.cinema.api.booking",
 		"vn.edu.uet.cinema.api.cinema",

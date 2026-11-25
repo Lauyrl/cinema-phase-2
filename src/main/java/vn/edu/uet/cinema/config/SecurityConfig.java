@@ -1,4 +1,4 @@
-﻿package vn.edu.uet.cinema.config;
+package vn.edu.uet.cinema.config;
 
 import static org.springframework.http.HttpMethod.GET;
 

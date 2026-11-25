@@ -1,4 +1,4 @@
-﻿package vn.edu.uet.cinema.api.auditorium;
+package vn.edu.uet.cinema.api.auditorium;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.Operation;

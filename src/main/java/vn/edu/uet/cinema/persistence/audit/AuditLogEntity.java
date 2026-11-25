@@ -1,4 +1,4 @@
-﻿package vn.edu.uet.cinema.persistence.audit;
+package vn.edu.uet.cinema.persistence.audit;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

@@ -1,4 +1,4 @@
-﻿package vn.edu.uet.cinema.persistence.audit;
+package vn.edu.uet.cinema.persistence.audit;
 
 import java.util.List;
 import org.springframework.data.domain.Page;

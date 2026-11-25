@@ -1,4 +1,4 @@
-﻿package vn.edu.uet.cinema.api.cinema;
+package vn.edu.uet.cinema.api.cinema;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

@@ -1,4 +1,4 @@
-﻿CREATE TABLE audit_log (
+CREATE TABLE audit_log (
     id          uuid         PRIMARY KEY,
     actor_id    uuid         NOT NULL CONSTRAINT fk_audit_log_actor REFERENCES account (id),
     action      varchar(40)  NOT NULL,
