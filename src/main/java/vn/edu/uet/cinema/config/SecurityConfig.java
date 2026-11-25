@@ -1,4 +1,4 @@
-package vn.edu.uet.cinema.config;
+﻿package vn.edu.uet.cinema.config;
 
 import static org.springframework.http.HttpMethod.GET;
 
@@ -37,99 +37,100 @@ import vn.edu.uet.cinema.business.account.PasswordHasher;
 @Configuration
 public class SecurityConfig {
 
-	/** Token claim holding the Account's roles, mapped to {@code ROLE_*} authorities. */
-	public static final String ROLES_CLAIM = "roles";
+    /** Token claim holding the Account's roles, mapped to {@code ROLE_*} authorities. */
+    public static final String ROLES_CLAIM = "roles";
 
-	private static final String[] CATALOGUE = {"/api/cinemas/**", "/api/auditoriums/**", "/api/movies/**",
-		"/api/showtimes/**"};
+    private static final String[] CATALOGUE = {"/api/cinemas/**", "/api/auditoriums/**", "/api/movies/**",
+            "/api/showtimes/**"};
 
-	@Bean
-	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-		AuthenticationEntryPoint unauthorized = problemJson(new BearerTokenAuthenticationEntryPoint());
-		AccessDeniedHandler forbidden = problemJson(new BearerTokenAccessDeniedHandler());
-		return http
-			.csrf(csrf -> csrf.disable())
-			.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-			.authorizeHttpRequests(auth -> auth
-				.requestMatchers("/api/auth/**", "/error", "/actuator/health", "/swagger-ui.html", "/swagger-ui/**",
-					"/v3/api-docs/**", "/v3/api-docs.yaml").permitAll()
-				.requestMatchers(GET, CATALOGUE).permitAll()
-				.requestMatchers(CATALOGUE).hasRole("ADMIN")
-				.requestMatchers("/api/bookings/**").hasRole("CUSTOMER")
-				.requestMatchers("/actuator/metrics/**").hasRole("ADMIN")
-				.anyRequest().authenticated())
-			.exceptionHandling(ex -> ex.authenticationEntryPoint(unauthorized).accessDeniedHandler(forbidden))
-			.oauth2ResourceServer(oauth -> oauth
-				.jwt(jwt -> jwt.jwtAuthenticationConverter(rolesClaimConverter()))
-				.authenticationEntryPoint(unauthorized)
-				.accessDeniedHandler(forbidden))
-			.build();
-	}
+    @Bean
+    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        AuthenticationEntryPoint unauthorized = problemJson(new BearerTokenAuthenticationEntryPoint());
+        AccessDeniedHandler forbidden = problemJson(new BearerTokenAccessDeniedHandler());
+        return http
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/auth/**", "/error", "/actuator/health", "/swagger-ui.html", "/swagger-ui/**",
+                                "/v3/api-docs/**", "/v3/api-docs.yaml").permitAll()
+                        .requestMatchers(GET, CATALOGUE).permitAll()
+                        .requestMatchers(CATALOGUE).hasRole("ADMIN")
+                        .requestMatchers("/api/bookings/**").hasRole("CUSTOMER")
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/actuator/metrics/**").hasRole("ADMIN")
+                        .anyRequest().authenticated())
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(unauthorized).accessDeniedHandler(forbidden))
+                .oauth2ResourceServer(oauth -> oauth
+                        .jwt(jwt -> jwt.jwtAuthenticationConverter(rolesClaimConverter()))
+                        .authenticationEntryPoint(unauthorized)
+                        .accessDeniedHandler(forbidden))
+                .build();
+    }
 
-	@Bean
-	SecretKey jwtKey(@Value("${app.jwt.secret}") String secret) {
-		byte[] bytes = secret.getBytes(StandardCharsets.UTF_8);
-		if (bytes.length < 32) {
-			throw new IllegalStateException("JWT_SECRET must be at least 32 bytes for HS256");
-		}
-		return new SecretKeySpec(bytes, "HmacSHA256");
-	}
+    @Bean
+    SecretKey jwtKey(@Value("${app.jwt.secret}") String secret) {
+        byte[] bytes = secret.getBytes(StandardCharsets.UTF_8);
+        if (bytes.length < 32) {
+            throw new IllegalStateException("JWT_SECRET must be at least 32 bytes for HS256");
+        }
+        return new SecretKeySpec(bytes, "HmacSHA256");
+    }
 
-	@Bean
-	JwtEncoder jwtEncoder(SecretKey jwtKey) {
-		return new NimbusJwtEncoder(new ImmutableSecret<>(jwtKey));
-	}
+    @Bean
+    JwtEncoder jwtEncoder(SecretKey jwtKey) {
+        return new NimbusJwtEncoder(new ImmutableSecret<>(jwtKey));
+    }
 
-	@Bean
-	JwtDecoder jwtDecoder(SecretKey jwtKey) {
-		return NimbusJwtDecoder.withSecretKey(jwtKey).macAlgorithm(MacAlgorithm.HS256).build();
-	}
+    @Bean
+    JwtDecoder jwtDecoder(SecretKey jwtKey) {
+        return NimbusJwtDecoder.withSecretKey(jwtKey).macAlgorithm(MacAlgorithm.HS256).build();
+    }
 
-	@Bean
-	PasswordHasher passwordHasher() {
-		BCryptPasswordEncoder bcrypt = new BCryptPasswordEncoder();
-		return new PasswordHasher() {
-			@Override
-			public String hash(String rawPassword) {
-				return bcrypt.encode(rawPassword);
-			}
+    @Bean
+    PasswordHasher passwordHasher() {
+        BCryptPasswordEncoder bcrypt = new BCryptPasswordEncoder();
+        return new PasswordHasher() {
+            @Override
+            public String hash(String rawPassword) {
+                return bcrypt.encode(rawPassword);
+            }
 
-			@Override
-			public boolean matches(String rawPassword, String hash) {
-				return bcrypt.matches(rawPassword, hash);
-			}
-		};
-	}
+            @Override
+            public boolean matches(String rawPassword, String hash) {
+                return bcrypt.matches(rawPassword, hash);
+            }
+        };
+    }
 
-	/** Lets the bearer defaults set the status and WWW-Authenticate header, then adds an RFC 9457 body. */
-	private static AuthenticationEntryPoint problemJson(AuthenticationEntryPoint delegate) {
-		return (request, response, e) -> {
-			delegate.commence(request, response, e);
-			writeProblem(response);
-		};
-	}
+    /** Lets the bearer defaults set the status and WWW-Authenticate header, then adds an RFC 9457 body. */
+    private static AuthenticationEntryPoint problemJson(AuthenticationEntryPoint delegate) {
+        return (request, response, e) -> {
+            delegate.commence(request, response, e);
+            writeProblem(response);
+        };
+    }
 
-	private static AccessDeniedHandler problemJson(AccessDeniedHandler delegate) {
-		return (request, response, e) -> {
-			delegate.handle(request, response, e);
-			writeProblem(response);
-		};
-	}
+    private static AccessDeniedHandler problemJson(AccessDeniedHandler delegate) {
+        return (request, response, e) -> {
+            delegate.handle(request, response, e);
+            writeProblem(response);
+        };
+    }
 
-	private static void writeProblem(HttpServletResponse response) throws IOException {
-		HttpStatus status = HttpStatus.valueOf(response.getStatus());
-		response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
-		response.getWriter().write("{\"type\":\"about:blank\",\"title\":\"%s\",\"status\":%d}"
-			.formatted(status.getReasonPhrase(), status.value()));
-	}
+    private static void writeProblem(HttpServletResponse response) throws IOException {
+        HttpStatus status = HttpStatus.valueOf(response.getStatus());
+        response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
+        response.getWriter().write("{\"type\":\"about:blank\",\"title\":\"%s\",\"status\":%d}"
+                .formatted(status.getReasonPhrase(), status.value()));
+    }
 
-	/** Maps the token's roles claim to {@code ROLE_*} authorities used by {@code hasRole}. */
-	private static JwtAuthenticationConverter rolesClaimConverter() {
-		JwtGrantedAuthoritiesConverter authorities = new JwtGrantedAuthoritiesConverter();
-		authorities.setAuthoritiesClaimName(ROLES_CLAIM);
-		authorities.setAuthorityPrefix("ROLE_");
-		JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
-		converter.setJwtGrantedAuthoritiesConverter(authorities);
-		return converter;
-	}
+    /** Maps the token's roles claim to {@code ROLE_*} authorities used by {@code hasRole}. */
+    private static JwtAuthenticationConverter rolesClaimConverter() {
+        JwtGrantedAuthoritiesConverter authorities = new JwtGrantedAuthoritiesConverter();
+        authorities.setAuthoritiesClaimName(ROLES_CLAIM);
+        authorities.setAuthorityPrefix("ROLE_");
+        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
+        converter.setJwtGrantedAuthoritiesConverter(authorities);
+        return converter;
+    }
 }
